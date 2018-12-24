@@ -7,7 +7,7 @@ const app = express();
 app.use(bodyParser.json());
 
 var corsOptions = {
-    origin: 'localhost:4200',
+    origin: 'http://localhost:4200',
     optionsSuccessStatus: 200
 }
 
@@ -19,14 +19,18 @@ app.listen(8000, () => {
 
 app.route('/api/cats').get((req, res) => {
     res.send({
-        cats: [{ name: 'lilly' }, { name: 'lucy' }]
+        cats: [
+            { id: 1, username: 'test', password: 'test', firstName: 'Test', lastName: 'User' },
+            { id: 2, username: 'chs5421', password: 'cHr.1702', firstName: 'Christopher', lastName: 'Senn' }
+        ]
     });
 });
 
-app.route('/api/cats/:name').get((req, res) => {
+app.route('/api/cats/:name').post((req, res) => {
     const requestedCatName = req.params['name']
     res.send({ name: requestedCatName });
 });
+
 
 app.route('/api/cats').post((req, res) => {
     res.send(201, req.body);
