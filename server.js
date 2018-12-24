@@ -1,8 +1,17 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+var mysql = require('mysql');
 
 const app = express();
+
+var connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: 'root',
+    database: 'move'
+});
+
 
 app.use(bodyParser.json());
 
@@ -43,3 +52,11 @@ app.route('/api/cats/:name').put((req, res) => {
 app.route('/api/cats/:name').delete((req, res) => {
     res.sendStatus(204);
 });
+
+connection.connect();
+
+connection.query('SELECT *  FROM users', function(err, rows, fields) {
+    if (err) throw err;
+    console.log(rows);
+});
+connection.end;
