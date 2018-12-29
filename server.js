@@ -3,6 +3,11 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 var mysql = require('mysql');
 
+const jwt = require('jsonwebtoken');
+
+// JWT key
+const jwtKey = 'key';
+
 const app = express();
 
 var connection = mysql.createConnection({
@@ -22,8 +27,25 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
+
 app.listen(8000, () => {
     console.log('Server started!');
+});
+
+app.post('/api/login', (req, res) => {
+    console.log('called');
+    const user = {
+        username: 'testUsername',
+        password: 'testPassword',
+        firstname: 'testFirstname',
+        lastname: 'testLastname'
+    }
+
+    jwt.sign({user}, jwtKey, {expiresIn: '30s'}, (err, token) => {
+        res.json({
+            token
+        });
+    });
 });
 
 app.route('/api/cats').get((req, res) => {
@@ -34,7 +56,7 @@ app.route('/api/cats').get((req, res) => {
         ]
     });
 });
-
+/*
 app.route('/api/cats/:name').post((req, res) => {
     const requestedCatName = req.params['name']
     res.send({ name: requestedCatName });
@@ -51,12 +73,12 @@ app.route('/api/cats/:name').put((req, res) => {
 
 app.route('/api/cats/:name').delete((req, res) => {
     res.sendStatus(204);
-});
+});*/
 
-connection.connect();
+/*connection.connect();
 
 connection.query('SELECT *  FROM users', function(err, rows, fields) {
     if (err) throw err;
     console.log(rows);
 });
-connection.end;
+connection.end;*/
