@@ -33,19 +33,36 @@ app.listen(8000, () => {
 });
 
 app.post('/api/login', (req, res) => {
-    console.log('called');
-    const user = {
-        username: 'testUsername',
-        password: 'testPassword',
-        firstname: 'testFirstname',
-        lastname: 'testLastname'
-    }
+    let dbUser;
+    connection.connect();
 
-    jwt.sign({user}, jwtKey, {expiresIn: '30s'}, (err, token) => {
-        res.json({
-            token
+    connection.query(`SELECT username, password, firstname, lastname FROM users WHERE username = '` + req.body.username + `' AND password = '` + req.body.password + `'`, function(err, results) {
+        if (err) {
+            throw err;
+        }
+        if(results === []) {
+        console.log(results);
+            return;
+        }
+        dbUser = {
+            username: results[0].username,
+            password: results[0].password,
+            firstname: results[0].firstname,
+            lastname: results[0].lastname
+        };
+
+        jwt.sign({dbUser}, jwtKey, {expiresIn: '30s'}, (err, token) => {
+            
+            res.json({
+                 username: dbUser.username,
+                 password: dbUser.password,
+                 firstName: dbUser.firstname,
+                 lastname: dbUser.lastname,
+                 token
+            });
         });
     });
+    connection.end;
 });
 
 app.route('/api/cats').get((req, res) => {
@@ -56,6 +73,7 @@ app.route('/api/cats').get((req, res) => {
         ]
     });
 });
+
 /*
 app.route('/api/cats/:name').post((req, res) => {
     const requestedCatName = req.params['name']
