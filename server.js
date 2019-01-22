@@ -31,25 +31,26 @@ app.use(cors(corsOptions));
 app.listen(8000, () => {
     console.log('Server started!');
 });
+connection.connect();
 
 app.post('/api/login', (req, res) => {
     let dbUser;
-    connection.connect();
 
     connection.query(`SELECT username, password, firstname, lastname FROM users WHERE username = '` + req.body.username + `' AND password = '` + req.body.password + `'`, function(err, results) {
-        if (err) {
+        /*if (err) {
             throw err;
-        }
-        if(results === []) {
-        console.log(results);
-            return;
-        }
-        dbUser = {
-            username: results[0].username,
-            password: results[0].password,
-            firstname: results[0].firstname,
-            lastname: results[0].lastname
+        }*/
+
+        try {
+            dbUser = {
+                username: results[0].username,
+                password: results[0].password,
+                firstname: results[0].firstname,
+                lastname: results[0].lastname
         };
+        } catch (err) {
+            res.sendStatus(401);
+        }
 
         jwt.sign({dbUser}, jwtKey, {expiresIn: '30s'}, (err, token) => {
             
@@ -62,17 +63,42 @@ app.post('/api/login', (req, res) => {
             });
         });
     });
-    connection.end;
 });
 
-app.route('/api/cats').get((req, res) => {
+/*app.get('/api/test', (req, res) => {
+    console.log('sad');
     res.send({
-        cats: [
-            { id: 1, username: 'test', password: 'test', firstName: 'Test', lastName: 'User' },
-            { id: 2, username: 'chs5421', password: 'cHr.1702', firstName: 'Christopher', lastName: 'Senn' }
-        ]
+       test: [{ test: 'test'}, {test:'test2'}]
     });
+});*/
+
+app.post('/api/guardedRoute', verifyToken, (req, res) => {
+    console.log('2eaq');
+    jwt.verify(req.token, jwtKey, (err, authData) => {
+        if (err) {
+            res.sendStatus(403);
+        } else {
+            res.json({
+                message: 'Works',
+                authData
+            });
+        }
+    });
+    
 });
+
+function verifyToken(req, res, next) {
+    console.log('2asdasdeaq');
+    const bearerHeader = req.headers['authorization'];
+    if (typeof bearerHeader !== 'undefined') {
+        const bearer = bearerHeader.split(' ');
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+        next();
+    } else {
+        res.sendStatus(403);
+    }
+}
 
 /*
 app.route('/api/cats/:name').post((req, res) => {
