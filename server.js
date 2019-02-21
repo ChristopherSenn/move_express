@@ -1,3 +1,4 @@
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -52,7 +53,7 @@ app.post('/api/login', (req, res) => {
             res.sendStatus(401);
         }
 
-        jwt.sign({dbUser}, jwtKey, {expiresIn: '30s'}, (err, token) => {
+        jwt.sign({dbUser}, jwtKey, {expiresIn: '5d'}, (err, token) => {
             
             res.json({
                  username: dbUser.username,
@@ -65,12 +66,95 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+app.get('/api/UniversityMarkersOnMap', verifyToken, (req, res) => {
+    jwt.verify(req.token, jwtKey, (err, authData) => {
+        if(err) {
+            res.sendStatus(403);
+        }else {
+            let markersOnMap = [];
+            connection.query('SELECT id, lat, lng FROM universities', function(err, results) {
+            try {
+                for (let i = 0; i < results.length; i++) {
+                    markersOnMap[i] = {
+                        id: results[i].id,
+                        lat: results[i].lat,
+                        lng: results[i].lng
+                    }
+                }
+            } catch (err) {
+                res.sendStatus(401);
+            }
+
+            res.json(markersOnMap);
+            });
+        }
+    })
+    
+})
+
+app.post('/api/UniversityDetailOnMap',verifyToken, (req, res) => {
+    jwt.verify(req.token, jwtKey, (err, authData) => {
+        if(err) {
+            res.sendStatus(403);
+        } else {
+            let universityDetailOnMap;
+            console.log(req.body);
+            connection.query(`SELECT id, name, description FROM universities WHERE id = '` + req.body.id + `'`, function(err, results) {
+                try {
+                    console.log(req.body.id);
+                    universityDetailOnMap = {
+                        id: results[0].id,
+                        name: results[0].name,
+                        description: results[0].description
+                    }
+                } catch (err) {
+                    res.sendStatus(401)
+                }
+                res.json(universityDetailOnMap); 
+            }); 
+        }
+    })
+})
+
+app.post('/api/UniversityFilters', verifyToken, (req, res) => {
+    jwt.verify(req.token, jwtKey, (err, authData) => {
+        if(err) {
+            res.sendStatus(403);
+        } else {
+            let filter = [];
+            connection.query(`SELECT * FROM ` + req.body.filter, function(err, results) {
+                for (let i = 0; i < results.length; i++) {
+                    filter[i] = {
+                        id: results[i].id,
+                        content: results[i].content,
+                        isActive: false
+                    }
+                }
+                res.json(filter);
+            })
+        }
+    })
+})
+
+function getUniversityFilter(category) {
+    let result;
+    connection.query(`SELECT * FROM ` + category, function(err, results) {
+        try {
+            console.log(results[0]);
+            return results[0];
+        } catch(err) {
+            res.sendStatus(401);
+        }
+    });
+    //return result;
+}
+
 /*app.get('/api/test', (req, res) => {
     console.log('sad');
     res.send({
        test: [{ test: 'test'}, {test:'test2'}]
     });
-});*/
+});*/ 
 
 app.post('/api/guardedRoute', verifyToken, (req, res) => {
     console.log('2eaq');
@@ -88,7 +172,6 @@ app.post('/api/guardedRoute', verifyToken, (req, res) => {
 });
 
 function verifyToken(req, res, next) {
-    console.log('2asdasdeaq');
     const bearerHeader = req.headers['authorization'];
     if (typeof bearerHeader !== 'undefined') {
         const bearer = bearerHeader.split(' ');
