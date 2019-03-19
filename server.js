@@ -122,7 +122,7 @@ app.post('/api/UniversityFilters', verifyToken, (req, res) => {
             res.sendStatus(403);
         } else {
             let filter = [];
-            connection.query(`SELECT * FROM ` + req.body.filter, function(err, results) {
+            connection.query(`SELECT * FROM ` + req.body.filter + ` order by id asc`, function(err, results) {
                 for (let i = 0; i < results.length; i++) {
                     filter[i] = {
                         id: results[i].id,
@@ -136,18 +136,26 @@ app.post('/api/UniversityFilters', verifyToken, (req, res) => {
     })
 })
 
-function getUniversityFilter(category) {
-    let result;
-    connection.query(`SELECT * FROM ` + category, function(err, results) {
-        try {
-            console.log(results[0]);
-            return results[0];
-        } catch(err) {
-            res.sendStatus(401);
+app.post('/api/Filters', verifyToken, (req, res) => {
+    jwt.verify(req.token, jwtKey, (err, authData) => {
+        if(err) {
+            
+            res.sendStatus(403);
+        } else {
+            let filter = [];
+            connection.query(`SELECT * FROM ` + req.body.filter, function(err, results) {
+                for (let i = 0; i < results.length; i++) {
+                    filter[i] = {
+                        universityId: results[i].university_id,
+                        filter_id: results[i].filter_id
+                    }
+                }
+                res.json(filter);
+            })
         }
-    });
-    //return result;
-}
+    })
+})
+
 
 /*app.get('/api/test', (req, res) => {
     console.log('sad');
