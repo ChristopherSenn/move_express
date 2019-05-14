@@ -72,19 +72,19 @@ app.get('/api/UniversityMarkersOnMap', verifyToken, (req, res) => {
             res.sendStatus(403);
         }else {
             let markersOnMap = [];
-            connection.query('SELECT id, lat, lng FROM universities', function(err, results) {
+            connection.query('SELECT id, lat, lng, name FROM universities', function(err, results) {
             try {
                 for (let i = 0; i < results.length; i++) {
                     markersOnMap[i] = {
                         id: results[i].id,
                         lat: results[i].lat,
-                        lng: results[i].lng
+                        lng: results[i].lng,
+                        name: results[i].name
                     }
                 }
             } catch (err) {
                 res.sendStatus(401);
             }
-
             res.json(markersOnMap);
             });
         }
